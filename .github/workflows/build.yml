@@ -32,12 +32,16 @@ jobs:
           sudo apt-get install -y gcc-arm-embedded
           sudo apt-get install -y cmake
           sudo apt-get install -y ninja-build
+          sudo apt-get install -y srecord
       - name: Install GCC ARM, CMake, and Ninja (Windows)
         if: ${{ matrix.os == 'windows-2016' }}
         run: |
           choco install gcc-arm-embedded
           choco install cmake
           choco install ninja
+          C:\msys64\usr\bin\wget.exe -O srecord.zip https://sourceforge.net/projects/srecord/files/srecord-win32/1.64/srecord-1.64-win32.zip/download
+          Expand-Archive -Force srecord.zip .
+          dir
       - name: Install GCC ARM, CMake, and Ninja (macOS)
         if: ${{ matrix.os == 'macos-10.15' }}
         run: |
@@ -45,6 +49,7 @@ jobs:
           brew install arm-none-eabi-gcc
           brew install cmake
           brew install ninja
+          brew install srecord
       - name: Install Yotta
         run: python -m pip install yotta
       - name: Check Versions
