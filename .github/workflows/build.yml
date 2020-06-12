@@ -19,36 +19,67 @@ jobs:
     name: Yotta ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
+      # Install and cache toolchain
+      - name: Cache pip (Ubuntu)
+        if: ${{ matrix.os == 'ubuntu-16.04' }}
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ubuntu-cache-${{ matrix.os }}
       - name: Install GCC ARM, CMake, and Ninja (Ubuntu)
         if: ${{ matrix.os == 'ubuntu-16.04' }}
         run: sh ./.github/workflows/install-toolchain-ubuntu.sh
+
+      - name: Cache Chocolatey and pip (Windows)
+        if: ${{ matrix.os == 'windows-2016' }}
+        uses: actions/cache@v2
+        with:
+          path: |
+            <CSIDL_LOCAL_APPDATA>\pip\Cache
+            C:\ProgramData\chocolatey\lib
+          key: windows-cache3-${{ matrix.os }}
       - name: Install GCC ARM, CMake, and Ninja (Windows)
         if: ${{ matrix.os == 'windows-2016' }}
         run: .\.github\workflows\install-toolchain-win.ps1
+
+      - name: Cache Homebrew and pip (macOS)
+        if: ${{ matrix.os == 'macos-10.15' }}
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/Library/Caches/pip
+            ~/Library/Caches/Homebrew
+            /usr/local/Homebrew/
+          key: mac-cache-${{ matrix.os }}
       - name: Install GCC ARM, CMake, and Ninja (macOS)
         if: ${{ matrix.os == 'macos-10.15' }}
         run: sh ./.github/workflows/install-toolchain-mac.sh
+
+      # Set up Python and install Yotta
       - name: Set up Python 3.5
         uses: actions/setup-python@v2
         with:
           python-version: '3.5'
       - name: Install Yotta
         run: python -m pip install yotta
+
+      # Check everything has been installed correctly
       - name: Check Versions
         run: |
           arm-none-eabi-gcc --version
           cmake --version
           ninja --version
-          srec_cat --version
           python --version
           python -m pip --version
           yotta --version
+
+      # Build with Yota and upload hex file
       - name: Set Yotta target
         run: yt target bbc-microbit-classic-gcc
-      - name: Build with Yotta
-        run: yotta --verbose build
-      - name: Upload hex file
-        uses: actions/upload-artifact@v1
-        with:
-          name: hex-yotta-${{ matrix.os }}
-          path: build/bbc-microbit-classic-gcc/source/microbit-samples-combined.hex
+      #- name: Build with Yotta
+      #  run: yotta --verbose build
+      #- name: Upload hex file
+      #  uses: actions/upload-artifact@v1
+      #  with:
+      #    name: hex-yotta-${{ matrix.os }}
+      #    path: build/bbc-microbit-classic-gcc/source/microbit-samples-combined.hex
