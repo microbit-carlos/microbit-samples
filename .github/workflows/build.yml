@@ -1,13 +1,6 @@
 name: Build DAL with Yotta
 
-on:
-  push:
-    branches: '*'
-  pull_request:
-    branches: '*'
-  schedule:
-    # Runs every day at 9 am
-    - cron: '0 9 * * *'
+on: [push, pull_request]
 
 jobs:
   build-yotta:
@@ -19,41 +12,16 @@ jobs:
     name: Yotta ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      # Install and cache toolchain
-      - name: Cache pip (Ubuntu)
-        if: ${{ matrix.os == 'ubuntu-16.04' }}
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ubuntu-cache-${{ matrix.os }}
+      # Install toolchain
       - name: Install GCC ARM, CMake, and Ninja (Ubuntu)
         if: ${{ matrix.os == 'ubuntu-16.04' }}
-        run: sh ./.github/workflows/install-toolchain-ubuntu.sh
-
-      - name: Cache Chocolatey and pip (Windows)
-        if: ${{ matrix.os == 'windows-2016' }}
-        uses: actions/cache@v2
-        with:
-          path: |
-            <CSIDL_LOCAL_APPDATA>\pip\Cache
-            C:\ProgramData\chocolatey\lib
-          key: windows-cache3-${{ matrix.os }}
+        run: sh ./.github/workflows/scripts/install-toolchain-ubuntu.sh
       - name: Install GCC ARM, CMake, and Ninja (Windows)
         if: ${{ matrix.os == 'windows-2016' }}
-        run: .\.github\workflows\install-toolchain-win.ps1
-
-      - name: Cache Homebrew and pip (macOS)
-        if: ${{ matrix.os == 'macos-10.15' }}
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/Library/Caches/pip
-            ~/Library/Caches/Homebrew
-            /usr/local/Homebrew/
-          key: mac-cache-${{ matrix.os }}
+        run: .\.github\workflows\scripts\install-toolchain-win.ps1
       - name: Install GCC ARM, CMake, and Ninja (macOS)
         if: ${{ matrix.os == 'macos-10.15' }}
-        run: sh ./.github/workflows/install-toolchain-mac.sh
+        run: sh ./.github/workflows/scripts/install-toolchain-mac.sh
 
       # Set up Python and install Yotta
       - name: Set up Python 3.5
@@ -73,7 +41,7 @@ jobs:
           python -m pip --version
           yotta --version
 
-      # Build with Yota and upload hex file
+      # Build with Yotta and upload hex file
       - name: Set Yotta target
         run: yt target bbc-microbit-classic-gcc
       #- name: Build with Yotta
