@@ -14,15 +14,16 @@ jobs:
       - uses: actions/checkout@v2
       # Install toolchain
       - name: Install GCC ARM, CMake, and Ninja (Ubuntu)
-        if: ${{ matrix.os == 'ubuntu-16.04' }}
+        if: runner.os == 'Linux'
         run: sh ./.github/workflows/scripts/install-toolchain-ubuntu.sh
       - name: Install GCC ARM, CMake, and Ninja (Windows)
-        if: ${{ matrix.os == 'windows-2016' }}
-        run: .\.github\workflows\scripts\install-toolchain-win.ps1
+        if: runner.os == 'Windows'
+        run: |
+          .\.github\workflows\scripts\install-toolchain-win.ps1
+          echo "::add-path::${env:GITHUB_WORKSPACE}"
       - name: Install GCC ARM, CMake, and Ninja (macOS)
-        if: ${{ matrix.os == 'macos-10.15' }}
+        if: runner.os == 'macOS'
         run: sh ./.github/workflows/scripts/install-toolchain-mac.sh
-
       # Set up Python, pip cache, and install Yotta
       - name: Set up Python 3.6
         uses: actions/setup-python@v2
@@ -31,31 +32,30 @@ jobs:
       - name: Get pip cache dir
         id: pip-cache
         run: echo "::set-output name=dir::$(pip cache dir)"
-      - name: pip cache
+      - name: Get pip cache
         uses: actions/cache@v2
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-cache-${{ matrix.os }}
       - name: Install Yotta
         run: python -m pip install yotta
-
       # Check everything has been installed correctly
       - name: Check Versions
         run: |
           arm-none-eabi-gcc --version
           cmake --version
           ninja --version
+          srec_cat --version
           python --version
           python -m pip --version
           yotta --version
-
       # Build with Yotta and upload hex file
       - name: Set Yotta target
         run: yt target bbc-microbit-classic-gcc
-      #- name: Build with Yotta
-      #  run: yotta --verbose build
-      #- name: Upload hex file
-      #  uses: actions/upload-artifact@v1
-      #  with:
-      #    name: hex-yotta-${{ matrix.os }}
-      #    path: build/bbc-microbit-classic-gcc/source/microbit-samples-combined.hex
+      - name: Build with Yotta
+        run: yotta --verbose build
+      - name: Upload hex file
+        uses: actions/upload-artifact@v1
+        with:
+          name: hex-yotta-${{ runner.os }}
+          path: build/bbc-microbit-classic-gcc/source/microbit-samples-combined.hex
