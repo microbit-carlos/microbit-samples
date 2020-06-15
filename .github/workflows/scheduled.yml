@@ -1,0 +1,19 @@
+name: Scheduled DAL Build DAL with Yotta
+
+on:
+  schedule:
+    # Runs every day at 9 am
+    # - cron: '0 9 * * *'
+    - cron: '*/10 * * * *'
+
+jobs:
+  trigger-build-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PING - Dispatch initiating repository event
+        # if: github.event.action != 'pong'
+        run: |
+          curl -X POST https://api.github.com/repos/microbit-carlos/microbit-samples/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.GITHUB_TOKEN }} \
+          --data '{"event_type": "scheduled_run", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'

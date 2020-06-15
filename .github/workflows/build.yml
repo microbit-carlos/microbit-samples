@@ -1,27 +1,31 @@
 name: Build DAL with Yotta
 
-on: [push, pull_request]
+on: [push, pull_request, repository_dispatch]
 
 jobs:
   build-yotta:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-16.04, macos-10.15, windows-2016]
       fail-fast: false
+    # If it is a scheduled run via repository_dispatch, do not run in macOS
+    if: ${{ matrix.os != 'macos-10.15' || github.event.action != 'scheduled_run' }}
+    # "!contains(github.event.head_commit.message, 'ci skip')"
+    # ${{ github.event_name == 'pull_request' && github.event.action == 'unassigned' }}
+    runs-on: ${{ matrix.os }}
     name: Yotta ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       # Install toolchain
-      - name: Install GCC ARM, CMake, and Ninja (Ubuntu)
+      - name: Install toolchain (Ubuntu)
         if: runner.os == 'Linux'
         run: sh ./.github/workflows/scripts/install-toolchain-ubuntu.sh
-      - name: Install GCC ARM, CMake, and Ninja (Windows)
+      - name: Install toolchain (Windows)
         if: runner.os == 'Windows'
         run: |
           .\.github\workflows\scripts\install-toolchain-win.ps1
           echo "::add-path::${env:GITHUB_WORKSPACE}"
-      - name: Install GCC ARM, CMake, and Ninja (macOS)
+      - name: Install toolchain (macOS)
         if: runner.os == 'macOS'
         run: sh ./.github/workflows/scripts/install-toolchain-mac.sh
       # Set up Python, pip cache, and install Yotta
