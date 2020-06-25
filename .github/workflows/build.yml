@@ -1,17 +1,18 @@
-name: Build DAL with Yotta
+# Ubuntu run on every commit, PR, and once a day
+name: Build DAL with Yotta (Ubuntu)
 
-on: [push, pull_request, repository_dispatch]
+on:
+  push:
+    branches: '*'
+  pull_request:
+    branches: '*'
 
 jobs:
   build-yotta:
     strategy:
       matrix:
-        os: [ubuntu-16.04, macos-10.15, windows-2016]
+        os: [ubuntu-16.04]
       fail-fast: false
-    # If it is a scheduled run via repository_dispatch, do not run in macOS
-    if: ${{ matrix.os != 'macos-10.15' || github.event.action != 'scheduled_run' }}
-    # "!contains(github.event.head_commit.message, 'ci skip')"
-    # ${{ github.event_name == 'pull_request' && github.event.action == 'unassigned' }}
     runs-on: ${{ matrix.os }}
     name: Yotta ${{ matrix.os }}
     steps:
